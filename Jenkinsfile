@@ -47,23 +47,21 @@ pipeline {
                 '''
             }
         }
+stage('Build Frontend') {
+    steps {
+        sh '''
+            echo "=========================================="
+            echo "BUILDING REACT FRONTEND"
+            echo "=========================================="
 
-        stage('Build Frontend') {
-            steps {
-                sh '''
-                    echo "=========================================="
-                    echo "BUILDING REACT FRONTEND"
-                    echo "=========================================="
-
-                    cd frontend
-
-                    npm install
-
-                    npm run build
-                '''
-            }
-        }
-
+            docker run --rm \
+                -v "$WORKSPACE/frontend:/app" \
+                -w /app \
+                node:18-alpine \
+                sh -c "npm install && npm run build"
+        '''
+    }
+}
         stage('Login to ECR') {
             steps {
                 sh '''
