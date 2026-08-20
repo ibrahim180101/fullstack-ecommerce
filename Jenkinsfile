@@ -3,21 +3,14 @@ pipeline {
     agent any
 
     environment {
-
         AWS_REGION = "us-east-1"
         AWS_ACCOUNT_ID = "154426737549"
 
-        BACKEND_ECR =
-            "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ecommerce-backend"
+        BACKEND_ECR = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ecommerce-backend"
+        FRONTEND_ECR = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ecommerce-frontend"
 
-        FRONTEND_ECR =
-            "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/ecommerce-frontend"
-
-        BACKEND_IMAGE =
-            "${BACKEND_ECR}:latest"
-
-        FRONTEND_IMAGE =
-            "${FRONTEND_ECR}:latest"
+        BACKEND_IMAGE = "${BACKEND_ECR}:latest"
+        FRONTEND_IMAGE = "${FRONTEND_ECR}:latest"
     }
 
     stages {
@@ -31,19 +24,14 @@ pipeline {
         stage('Build Backend') {
             steps {
                 sh '''
+                    set -e
                     echo "=========================================="
                     echo "BUILDING BACKEND"
                     echo "=========================================="
 
                     cd backend
-
-                    chmod +x mvnw || true
-
-                    if [ -f mvnw ]; then
-                        ./mvnw clean package -DskipTests
-                    else
-                        mvn clean package -DskipTests
-                    fi
+                    chmod +x mvnw
+                    ./mvnw clean package -DskipTests
                 '''
             }
         }
@@ -51,6 +39,7 @@ pipeline {
         stage('Build Frontend') {
             steps {
                 sh '''
+                    set -e
                     echo "=========================================="
                     echo "BUILDING FRONTEND"
                     echo "=========================================="
@@ -58,7 +47,7 @@ pipeline {
                     docker run --rm \
                         -v "$WORKSPACE/frontend:/app" \
                         -w /app \
-                        node:18-alpine \
+                        node:20-alpine \
                         sh -c "npm install && npm run build"
                 '''
             }
@@ -67,6 +56,7 @@ pipeline {
         stage('Login to ECR') {
             steps {
                 sh '''
+                    set -e
                     echo "=========================================="
                     echo "LOGIN TO ECR"
                     echo "=========================================="
@@ -84,6 +74,7 @@ pipeline {
         stage('Build Backend Docker Image') {
             steps {
                 sh '''
+                    set -e
                     echo "=========================================="
                     echo "BUILDING BACKEND IMAGE"
                     echo "=========================================="
@@ -99,6 +90,7 @@ pipeline {
         stage('Build Frontend Docker Image') {
             steps {
                 sh '''
+                    set -e
                     echo "=========================================="
                     echo "BUILDING FRONTEND IMAGE"
                     echo "=========================================="
@@ -114,10 +106,8 @@ pipeline {
         stage('Push Backend to ECR') {
             steps {
                 sh '''
-                    echo "=========================================="
+                    set -e
                     echo "PUSHING BACKEND TO ECR"
-                    echo "=========================================="
-
                     docker push ${BACKEND_IMAGE}
                 '''
             }
@@ -126,10 +116,8 @@ pipeline {
         stage('Push Frontend to ECR') {
             steps {
                 sh '''
-                    echo "=========================================="
+                    set -e
                     echo "PUSHING FRONTEND TO ECR"
-                    echo "=========================================="
-
                     docker push ${FRONTEND_IMAGE}
                 '''
             }
@@ -137,21 +125,14 @@ pipeline {
     }
 
     post {
-
         success {
             echo '''
 ==========================================
        ECR PUSH SUCCESSFUL
 ==========================================
-
-Backend:
-ecommerce-backend:latest
-
-Frontend:
-ecommerce-frontend:latest
-
-Images successfully pushed to Amazon ECR.
-
+Backend:  ecommerce-backend:latest
+Frontend: ecommerce-frontend:latest
+ML backend: NOT DEPLOYED
 ==========================================
 '''
         }
@@ -161,18 +142,13 @@ Images successfully pushed to Amazon ECR.
 ==========================================
           BUILD FAILED
 ==========================================
-
 Check the failed Jenkins stage.
-
 ==========================================
 '''
         }
 
         always {
-            sh '''
-                echo "Cleaning Docker resources..."
-                docker system prune -af || true
-            '''
+            sh 'docker system prune -af || true'
         }
     }
 }
