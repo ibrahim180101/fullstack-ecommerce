@@ -13,10 +13,9 @@ import com.herin.ecommerce.repository.ProductRepository;
 import com.herin.ecommerce.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class CartService {
@@ -26,115 +25,99 @@ public class CartService {
     private final ProductRepository productRepository;
     private final CartMapper cartMapper;
 
-    /**
-     * Constructor for CartService.
-     *
-     * @param cartItemRepository the repository to manage cart items
-     */
     @Autowired
-    public CartService(CartItemRepository cartItemRepository, UserRepository userRepository, ProductRepository productRepository, CartMapper cartMapper) {
+    public CartService(
+            CartItemRepository cartItemRepository,
+            UserRepository userRepository,
+            ProductRepository productRepository,
+            CartMapper cartMapper) {
         this.cartItemRepository = cartItemRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.cartMapper = cartMapper;
     }
 
-    /**
-     * Retrieves all cart items for a given user ID.
-     *
-     * @param userId the ID of the user whose cart items are to be retrieved
-     */
+    @Transactional(readOnly = true)
     public List<CartResponseDTO> getCartItemsByUserId(Long userId) {
-        return cartItemRepository.findByUserId(userId).stream()
-                .map(cartMapper::mapToDTO).collect(Collectors.toList());
+        getUserOrThrow(userId);
+        return cartItemRepository.findByUserId(userId)
+                .stream()
+                .map(cartMapper::mapToDTO)
+                .toList();
     }
 
-    /**
-     * Adds an item to the cart for a given user.
-     *
-     * @param userId the ID of the user
-     * @param cartRequestDTO the request containing product ID and quantity
-     * @return the added cart item as a DTO
-     */
-    public CartResponseDTO addCartItem(long userId, CartRequestDTO cartRequestDTO) {
-        Long productId = cartRequestDTO.getProductId();
-        int requestedQty = Math.max(cartRequestDTO.getQuantity(), 1);
+    @Transactional
+    public CartResponseDTO addCartItem(long userId, CartRequestDTO request) {
+        if (request == null || request.getProductId() == null) {
+            throw new BadRequestException("Product ID is required");
+        }
 
-        ProductEntity product = getProductOrThrow(productId);
+        int requestedQty = Math.max(request.getQuantity(), 1);
+        ProductEntity product = getProductOrThrow(request.getProductId());
         UserEntity user = getUserOrThrow(userId);
 
-        if (product.getQuantity() < requestedQty) {
+        CartItemEntity item = cartItemRepository
+                .findByUserIdAndProductId(userId, product.getId())
+                .orElseGet(CartItemEntity::new);
+
+        int newQuantity = item.getId() == null
+                ? requestedQty
+                : item.getQuantity() + requestedQty;
+
+        if (product.getQuantity() < newQuantity) {
             throw new BadRequestException("Not enough product in stock");
         }
 
-        Optional<CartItemEntity> existingCartItem = cartItemRepository.findByUserIdAndProductId(userId, productId);
+        item.setUser(user);
+        item.setProduct(product);
+        item.setQuantity(newQuantity);
 
-        CartItemEntity savedItem;
-        if (existingCartItem.isPresent()) {
-            CartItemEntity item = existingCartItem.get();
-            item.setQuantity(cartRequestDTO.getQuantity());
-            savedItem = cartItemRepository.save(item);
-        }
-        else {
-            CartItemEntity newItem = new CartItemEntity();
-            newItem.setUser(user);
-            newItem.setProduct(product);
-            newItem.setQuantity(cartRequestDTO.getQuantity());
-            savedItem = cartItemRepository.save(newItem);
-        }
-
-        return cartMapper.mapToDTO(savedItem);
+        return cartMapper.mapToDTO(cartItemRepository.save(item));
     }
 
-    /**
-     * Deletes a cart item for a given user.
-     *
-     * @param userId the ID of the user
-     * @param cartId the ID of the cart item to delete
-     */
-    public void deleteCartItem(long userId, long cartId) {
-
-        CartItemEntity item = cartItemRepository.findById(cartId)
+    @Transactional
+    public void deleteCartItem(long userId, long cartItemId) {
+        CartItemEntity item = cartItemRepository.findById(cartItemId)
                 .orElseThrow(() -> new BadRequestException("Cart item not found"));
 
-        if (item.getUser().getId() != userId) {
+        if (item.getUser() == null || !item.getUser().getId().equals(userId)) {
             throw new BadRequestException("Unauthorized access to cart item");
         }
 
         cartItemRepository.delete(item);
     }
 
+    @Transactional
+    public CartResponseDTO patchCartItemQty(
+            long userId,
+            Long cartItemId,
+            QuantityUpdateRequest request) {
 
-    /**
-     * Updates the quantity of a cart item.
-     *
-     * @param userId the ID of the user
-     * @param cartItemId the ID of the cart item to update
-     * @param quantityUpdateRequest the request containing the new quantity
-     * @return the updated cart item as a DTO
-     */
-    public CartResponseDTO patchCartItemQty(long userId, Long cartItemId, QuantityUpdateRequest quantityUpdateRequest) {
-        CartItemEntity cartItem = cartItemRepository.findById(cartItemId)
-                .orElseThrow(() -> new BadRequestException("No such Cart Item Exist"));
+        if (request == null) {
+            throw new BadRequestException("Quantity is required");
+        }
 
-        int requestedQty = Math.max(quantityUpdateRequest.getQuantity(), 1);
-        ProductEntity product = cartItem.getProduct();
-        UserEntity user = cartItem.getUser();
+        CartItemEntity item = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new BadRequestException("Cart item not found"));
 
-        if (user.getId() != userId) {
+        if (item.getUser() == null || !item.getUser().getId().equals(userId)) {
             throw new BadRequestException("Unauthorized access to cart item");
+        }
+
+        int requestedQty = Math.max(request.getQuantity(), 1);
+        ProductEntity product = item.getProduct();
+
+        if (product == null) {
+            throw new BadRequestException("Product not found for cart item");
         }
 
         if (product.getQuantity() < requestedQty) {
             throw new BadRequestException("Not enough product in stock");
         }
 
-        cartItem.setQuantity(requestedQty);
-        cartItemRepository.save(cartItem);
-        return cartMapper.mapToDTO(cartItem);
+        item.setQuantity(requestedQty);
+        return cartMapper.mapToDTO(cartItemRepository.save(item));
     }
-
-
 
     private ProductEntity getProductOrThrow(Long productId) {
         return productRepository.findById(productId)
@@ -143,7 +126,6 @@ public class CartService {
 
     private UserEntity getUserOrThrow(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new BadRequestException("User not found"));
+                .orElseThrow(() -> new BadRequestException("User not found. Please login again."));
     }
-
 }
