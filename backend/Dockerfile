@@ -1,18 +1,17 @@
-# Use lightweight OpenJDK base image
-FROM openjdk:17-jdk-alpine
+# Use lightweight Java 17 base image
+FROM eclipse-temurin:17-jdk-alpine
 
 # Set working directory inside the container
 WORKDIR /app
 
-
-# Copy the built jar from host to container
+# Copy the built JAR
 COPY target/*.jar app.jar
 
-# Expose the port your Spring Boot app runs on
+# Spring Boot application port
 EXPOSE 8082
 
-# Define environment variables for Spring Boot
+# Production profile
 ENV SPRING_PROFILES_ACTIVE=prod
 
-# Start the application with environment-aware config
+# Start application
 ENTRYPOINT ["java", "-jar", "app.jar"]
