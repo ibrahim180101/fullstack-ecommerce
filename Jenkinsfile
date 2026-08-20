@@ -32,7 +32,7 @@ pipeline {
             steps {
                 sh '''
                     echo "=========================================="
-                    echo "BUILDING SPRING BOOT BACKEND"
+                    echo "BUILDING BACKEND"
                     echo "=========================================="
 
                     cd backend
@@ -47,26 +47,28 @@ pipeline {
                 '''
             }
         }
-stage('Build Frontend') {
-    steps {
-        sh '''
-            echo "=========================================="
-            echo "BUILDING REACT FRONTEND"
-            echo "=========================================="
 
-            docker run --rm \
-                -v "$WORKSPACE/frontend:/app" \
-                -w /app \
-                node:18-alpine \
-                sh -c "npm install && npm run build"
-        '''
-    }
-}
+        stage('Build Frontend') {
+            steps {
+                sh '''
+                    echo "=========================================="
+                    echo "BUILDING FRONTEND"
+                    echo "=========================================="
+
+                    docker run --rm \
+                        -v "$WORKSPACE/frontend:/app" \
+                        -w /app \
+                        node:18-alpine \
+                        sh -c "npm install && npm run build"
+                '''
+            }
+        }
+
         stage('Login to ECR') {
             steps {
                 sh '''
                     echo "=========================================="
-                    echo "LOGIN TO AMAZON ECR"
+                    echo "LOGIN TO ECR"
                     echo "=========================================="
 
                     aws ecr get-login-password \
@@ -83,7 +85,7 @@ stage('Build Frontend') {
             steps {
                 sh '''
                     echo "=========================================="
-                    echo "BUILDING BACKEND DOCKER IMAGE"
+                    echo "BUILDING BACKEND IMAGE"
                     echo "=========================================="
 
                     docker build \
@@ -98,7 +100,7 @@ stage('Build Frontend') {
             steps {
                 sh '''
                     echo "=========================================="
-                    echo "BUILDING FRONTEND DOCKER IMAGE"
+                    echo "BUILDING FRONTEND IMAGE"
                     echo "=========================================="
 
                     docker build \
@@ -109,11 +111,11 @@ stage('Build Frontend') {
             }
         }
 
-        stage('Push Backend Image') {
+        stage('Push Backend to ECR') {
             steps {
                 sh '''
                     echo "=========================================="
-                    echo "PUSHING BACKEND IMAGE"
+                    echo "PUSHING BACKEND TO ECR"
                     echo "=========================================="
 
                     docker push ${BACKEND_IMAGE}
@@ -121,72 +123,14 @@ stage('Build Frontend') {
             }
         }
 
-        stage('Push Frontend Image') {
+        stage('Push Frontend to ECR') {
             steps {
                 sh '''
                     echo "=========================================="
-                    echo "PUSHING FRONTEND IMAGE"
+                    echo "PUSHING FRONTEND TO ECR"
                     echo "=========================================="
 
                     docker push ${FRONTEND_IMAGE}
-                '''
-            }
-        }
-
-        stage('Deploy Backend to ECS') {
-            steps {
-                sh '''
-                    echo "=========================================="
-                    echo "DEPLOYING BACKEND TO ECS"
-                    echo "=========================================="
-
-                    aws ecs update-service \
-                        --cluster fullstack-ecommerce-cluster \
-                        --service fullstack-ecommerce-backend \
-                        --force-new-deployment \
-                        --region ${AWS_REGION}
-                '''
-            }
-        }
-
-        stage('Deploy Frontend to ECS') {
-            steps {
-                sh '''
-                    echo "=========================================="
-                    echo "DEPLOYING FRONTEND TO ECS"
-                    echo "=========================================="
-
-                    aws ecs update-service \
-                        --cluster fullstack-ecommerce-cluster \
-                        --service fullstack-ecommerce-frontend \
-                        --force-new-deployment \
-                        --region ${AWS_REGION}
-                '''
-            }
-        }
-
-        stage('Wait for Backend') {
-            steps {
-                sh '''
-                    echo "Waiting for backend..."
-
-                    aws ecs wait services-stable \
-                        --cluster fullstack-ecommerce-cluster \
-                        --services fullstack-ecommerce-backend \
-                        --region ${AWS_REGION}
-                '''
-            }
-        }
-
-        stage('Wait for Frontend') {
-            steps {
-                sh '''
-                    echo "Waiting for frontend..."
-
-                    aws ecs wait services-stable \
-                        --cluster fullstack-ecommerce-cluster \
-                        --services fullstack-ecommerce-frontend \
-                        --region ${AWS_REGION}
                 '''
             }
         }
@@ -197,7 +141,7 @@ stage('Build Frontend') {
         success {
             echo '''
 ==========================================
-       DEPLOYMENT SUCCESSFUL
+       ECR PUSH SUCCESSFUL
 ==========================================
 
 Backend:
@@ -206,8 +150,7 @@ ecommerce-backend:latest
 Frontend:
 ecommerce-frontend:latest
 
-ML backend:
-NOT DEPLOYED
+Images successfully pushed to Amazon ECR.
 
 ==========================================
 '''
@@ -216,7 +159,7 @@ NOT DEPLOYED
         failure {
             echo '''
 ==========================================
-         DEPLOYMENT FAILED
+          BUILD FAILED
 ==========================================
 
 Check the failed Jenkins stage.
@@ -227,8 +170,7 @@ Check the failed Jenkins stage.
 
         always {
             sh '''
-                echo "Cleaning unused Docker resources..."
-
+                echo "Cleaning Docker resources..."
                 docker system prune -af || true
             '''
         }
