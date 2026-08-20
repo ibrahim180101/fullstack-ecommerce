@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import axios from "../api/axios";
 import { useAuth } from "./AuthContext";
 
@@ -10,9 +10,9 @@ export const CartProvider = ({ children }) => {
     const [error, setError] = useState(null);
     const { token } = useAuth();
 
-    const clearError = () => setError(null);
+    const clearError = useCallback(() => setError(null), []);
 
-    const fetchCartItems = async () => {
+    const fetchCartItems = useCallback(async () => {
         if (!token) {
             setCartItems([]);
             setLoading(false);
@@ -32,7 +32,7 @@ export const CartProvider = ({ children }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, clearError]);
 
     const addCartItem = async (productId, quantity = 1) => {
         if (!token) {
@@ -122,7 +122,7 @@ export const CartProvider = ({ children }) => {
 
     useEffect(() => {
         fetchCartItems();
-    }, [token]);
+    }, [fetchCartItems]);
 
     const subTotal = cartItems.reduce(
         (total, item) =>
