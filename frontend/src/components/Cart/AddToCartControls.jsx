@@ -1,40 +1,66 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useCart } from "../../context/CartContext";
 
 function AddToCartControls({ id }) {
-    const { cartItems, addCartItem , updateCartItemQuantity, removeCartItem} = useCart();
+    const {
+        cartItems,
+        addCartItem,
+        updateCartItemQuantity,
+        removeCartItem,
+    } = useCart();
 
-    const existingCartItem = cartItems.find(item => item.product.id === id);
+    const existingCartItem = cartItems.find(
+        (item) => Number(item.product?.id) === Number(id)
+    );
 
-    const [quantity, setQuantity] = useState(existingCartItem?.quantity || 0);
+    const [quantity, setQuantity] = useState(
+        existingCartItem?.quantity || 0
+    );
 
     useEffect(() => {
-        if (existingCartItem) {
-            setQuantity(existingCartItem.quantity);
-        }
-    }, [existingCartItem]);
+        setQuantity(existingCartItem?.quantity || 0);
+    }, [existingCartItem?.quantity, existingCartItem?.id]);
 
-    const handleAddToCart = () => {
-        addCartItem(existingCartItem ? existingCartItem.id : id);
-        setQuantity(1);
+    const handleAddToCart = async () => {
+        const success = await addCartItem(id, 1);
+        if (success) {
+            setQuantity(1);
+        }
     };
 
-    const decreaseQty = () => {
-        if (quantity === 1) removeCartItem(existingCartItem.id); // Remove item if quantity is 1 and decrease is clicked
-        if (existingCartItem) {
-            updateCartItemQuantity(existingCartItem.id, quantity - 1);
-            setQuantity(prev => Math.max(prev - 1, 0));
+    const decreaseQty = async () => {
+        if (!existingCartItem) return;
+
+        if (quantity <= 1) {
+            const success = await removeCartItem(existingCartItem.id);
+            if (success) setQuantity(0);
+            return;
         }
 
+        const success = await updateCartItemQuantity(
+            existingCartItem.id,
+            quantity - 1
+        );
+
+        if (success) {
+            setQuantity((prev) => Math.max(prev - 1, 1));
+        }
     };
 
-    const increaseQty = () => {
-        setQuantity(prev => prev + 1);
-        if (existingCartItem) {
-            updateCartItemQuantity(existingCartItem.id, quantity + 1);
+    const increaseQty = async () => {
+        if (!existingCartItem) {
+            const success = await addCartItem(id, 1);
+            if (success) setQuantity(1);
+            return;
         }
-        else {
-            addCartItem(id);
+
+        const success = await updateCartItemQuantity(
+            existingCartItem.id,
+            quantity + 1
+        );
+
+        if (success) {
+            setQuantity((prev) => prev + 1);
         }
     };
 
@@ -43,16 +69,20 @@ function AddToCartControls({ id }) {
             {quantity > 0 ? (
                 <div className="flex items-center">
                     <button
-                        className="h-10 w-10 text-red-500  rounded-l hover:text-red-400 font-bold text-lg"
+                        type="button"
+                        className="h-10 w-10 text-red-500 rounded-l hover:text-red-400 font-bold text-lg"
                         onClick={decreaseQty}
                     >
                         −
                     </button>
-                    <span className="h-10 w-10 flex items-center justify-center ">
-        {quantity}
-      </span>
+
+                    <span className="h-10 w-10 flex items-center justify-center">
+                        {quantity}
+                    </span>
+
                     <button
-                        className="h-10 w-10 text-blue-500  rounded-r hover:text-blue-400 font-bold text-lg"
+                        type="button"
+                        className="h-10 w-10 text-blue-500 rounded-r hover:text-blue-400 font-bold text-lg"
                         onClick={increaseQty}
                     >
                         +
@@ -60,6 +90,7 @@ function AddToCartControls({ id }) {
                 </div>
             ) : (
                 <button
+                    type="button"
                     className="h-10 px-6 bg-blue-500 text-white rounded hover:bg-blue-600"
                     onClick={handleAddToCart}
                 >
@@ -67,7 +98,6 @@ function AddToCartControls({ id }) {
                 </button>
             )}
         </div>
-
     );
 }
 
