@@ -8,7 +8,7 @@ WORKDIR /app
 COPY target/*.jar app.jar
 
 # Spring Boot application port
-EXPOSE 8082
+EXPOSE 8080
 
 # Production profile
 ENV SPRING_PROFILES_ACTIVE=prod
