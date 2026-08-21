@@ -1,0 +1,14 @@
+package com.herin.ecommerce.repository;
+
+import com.herin.ecommerce.model.OrderEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
+
+    List<OrderEntity> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    Optional<OrderEntity> findByStripeSessionId(String stripeSessionId);
+}
