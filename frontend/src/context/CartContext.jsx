@@ -34,6 +34,10 @@ export const CartProvider = ({ children }) => {
         }
     }, [token, clearError]);
 
+    const clearCart = useCallback(() => {
+        setCartItems([]);
+    }, []);
+
     const addCartItem = async (productId, quantity = 1) => {
         if (!token) {
             setError("Please login before adding products to cart.");
@@ -148,6 +152,7 @@ export const CartProvider = ({ children }) => {
                 addCartItem,
                 removeCartItem,
                 updateCartItemQuantity,
+                clearCart,
             }}
         >
             {children}
