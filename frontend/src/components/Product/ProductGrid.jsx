@@ -20,14 +20,12 @@ function ProductGrid({ searchTerm, onDataLoaded, filters = {} }) {
                 setLoading(true);
                 const token = localStorage.getItem("authToken");
                 const response = await axios.get("/api/v1/products", {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
+                    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
                     params: { page, size, search: searchTerm || "" },
                 });
-                setProducts(response.data.products || []);
-                onDataLoaded?.(response.data.products || []);
+                const loaded = response.data.products || [];
+                setProducts(loaded);
+                onDataLoaded?.(loaded);
                 setTotalPages(response.data.totalPages || 1);
             } catch (err) {
                 const errorMsg = err.response?.data?.error;
@@ -41,63 +39,71 @@ function ProductGrid({ searchTerm, onDataLoaded, filters = {} }) {
         fetchData();
     }, [page, size, searchTerm, onDataLoaded]);
 
+    useEffect(() => {
+        setPage(0);
+    }, [filters.category, filters.minPrice, filters.maxPrice, filters.sort]);
+
     const filteredProducts = useMemo(() => {
         let result = [...products];
         const category = (filters.category || "").toLowerCase();
         const min = filters.minPrice === "" ? null : Number(filters.minPrice);
         const max = filters.maxPrice === "" ? null : Number(filters.maxPrice);
 
-        if (category) {
-            result = result.filter((product) =>
-                String(product.category || "").toLowerCase() === category
-            );
-        }
-        if (min !== null && !Number.isNaN(min)) {
-            result = result.filter((product) => Number(product.price) >= min);
-        }
-        if (max !== null && !Number.isNaN(max)) {
-            result = result.filter((product) => Number(product.price) <= max);
-        }
+        if (category) result = result.filter((product) => String(product.category || "").toLowerCase() === category);
+        if (min !== null && !Number.isNaN(min)) result = result.filter((product) => Number(product.price) >= min);
+        if (max !== null && !Number.isNaN(max)) result = result.filter((product) => Number(product.price) <= max);
         if (filters.sort === "low") result.sort((a, b) => Number(a.price) - Number(b.price));
         if (filters.sort === "high") result.sort((a, b) => Number(b.price) - Number(a.price));
         if (filters.sort === "name") result.sort((a, b) => String(a.name).localeCompare(String(b.name)));
-
         return result;
     }, [products, filters]);
 
     return (
-        <>
+        <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 md:px-10">
             {alertMessage && (
-                <div className="max-w-2xl mx-auto">
+                <div className="mb-6">
                     <Alert type={alertType} message={alertMessage} onClose={() => setAlertMessage("")} />
                 </div>
             )}
 
             {loading ? <Spinner /> : (
                 <>
-                    <div id="product-filters" className="flex flex-wrap items-center justify-center gap-3 px-4 pt-6">
-                        <span className="font-semibold text-gray-700 dark:text-gray-200">Filter Products:</span>
+                    <div className="mb-5 flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">Our collection</p>
+                            <h2 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">Latest products</h2>
+                        </div>
+                        <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-600 shadow-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+                            {filteredProducts.length} shown
+                        </span>
                     </div>
-                    <ul className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4 md:px-10 mb-10">
+
+                    <ul className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {filteredProducts.map((product) => (
-                            <li key={product.id}>
+                            <li key={product.id} className="min-w-0">
                                 <ProductCard id={product.id} name={product.name} description={product.description} img={product.imageUrl} price={product.price} />
                             </li>
                         ))}
                     </ul>
+
                     {filteredProducts.length === 0 && (
-                        <p className="text-center text-gray-600 dark:text-gray-300 mb-8">No products match your filter.</p>
+                        <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center dark:border-slate-700 dark:bg-slate-900">
+                            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl dark:bg-slate-800">⌕</div>
+                            <h3 className="text-lg font-black">No products found</h3>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Try a different category or price range.</p>
+                        </div>
                     )}
-                    <div className="flex items-center justify-center gap-3 px-4 py-4">
-                        <button onClick={() => setPage((prev) => Math.max(prev - 1, 0))} disabled={page === 0} className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">&#129172;</button>
+
+                    <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
+                        <button onClick={() => setPage((prev) => Math.max(prev - 1, 0))} disabled={page === 0} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-white">←</button>
                         {[...Array(totalPages)].map((_, i) => (
-                            <button key={i} onClick={() => setPage(i)} className={`px-4 py-2 rounded ${page === i ? "bg-blue-600 text-white" : "bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-white"}`}>{i + 1}</button>
+                            <button key={i} onClick={() => setPage(i)} className={`rounded-xl px-4 py-2.5 text-sm font-bold transition ${page === i ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "border border-slate-200 bg-white text-slate-700 hover:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"}`}>{i + 1}</button>
                         ))}
-                        <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))} disabled={page >= totalPages - 1} className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">&#129174;</button>
+                        <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))} disabled={page >= totalPages - 1} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-blue-500 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-white">→</button>
                     </div>
                 </>
             )}
-        </>
+        </section>
     );
 }
 
