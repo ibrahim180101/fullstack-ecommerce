@@ -1,32 +1,72 @@
-import {useNavigate} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function OrderSummary({ cartItems, subTotal }) {
     const navigate = useNavigate();
+    const itemCount = cartItems.reduce((total, item) => total + Number(item.quantity || 0), 0);
+
     return (
-        <div className="mt-6 w-full max-w-2xl bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Order Summary</h2>
-            <ul className="space-y-2">
+        <aside className="sticky top-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-black">Order Summary</h2>
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-white/10 dark:text-slate-300">
+                    {itemCount} items
+                </span>
+            </div>
+
+            <div className="mt-6 space-y-4">
                 {cartItems.map((item) => (
-                    <li key={item.id} className="flex justify-between text-gray-700 dark:text-gray-300">
-                        <span>{item.product.name} (x{item.quantity})</span>
-                        <span>${(item.product.price * item.quantity).toFixed(2)}</span>
-                    </li>
+                    <div key={item.id} className="flex gap-3">
+                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+                            {item.product?.imageUrl ? (
+                                <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full object-cover" />
+                            ) : (
+                                <div className="flex h-full items-center justify-center text-lg">📦</div>
+                            )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-bold">{item.product.name}</p>
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Qty {item.quantity}</p>
+                        </div>
+                        <span className="text-sm font-bold">₹{(item.product.price * item.quantity).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+                    </div>
                 ))}
-            </ul>
-            <div className="mt-4 border-t pt-4">
-                <div className="flex justify-between text-gray-800 dark:text-white font-semibold">
-                    <span>Total</span>
-                    <span>
-                        ${subTotal}
-                    </span>
+            </div>
+
+            <div className="my-6 border-t border-slate-200 dark:border-white/10" />
+
+            <div className="space-y-3 text-sm">
+                <div className="flex justify-between text-slate-500 dark:text-slate-400">
+                    <span>Subtotal</span>
+                    <span>₹{Number(subTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between text-slate-500 dark:text-slate-400">
+                    <span>Delivery</span>
+                    <span className="font-bold text-green-600">FREE</span>
                 </div>
             </div>
-            <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors"
+
+            <div className="my-5 border-t border-slate-200 dark:border-white/10" />
+
+            <div className="flex items-end justify-between">
+                <div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">Total</p>
+                    <p className="mt-1 text-3xl font-black">₹{Number(subTotal).toLocaleString("en-IN", { minimumFractionDigits: 2 })}</p>
+                </div>
+                <span className="text-xs font-semibold text-slate-400">Taxes included where applicable</span>
+            </div>
+
+            <button
+                className="mt-6 w-full rounded-xl bg-blue-600 py-3.5 font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-500"
                 onClick={() => navigate("/checkout")}
             >
-                Proceed to Checkout
+                Proceed to Secure Checkout →
             </button>
-        </div>
+
+            <div className="mt-4 flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <span>🔒</span>
+                <span>Secure checkout powered by Stripe</span>
+            </div>
+        </aside>
     );
 }
 
