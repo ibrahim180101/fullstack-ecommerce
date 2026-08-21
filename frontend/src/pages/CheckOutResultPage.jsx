@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import axios from "../api/axios";
+import { useCart } from "../context/CartContext";
 
 function CheckOutResultPage({ success }) {
     const [searchParams] = useSearchParams();
     const [order, setOrder] = useState(null);
     const [error, setError] = useState("");
     const [processing, setProcessing] = useState(true);
+    const { clearCart } = useCart();
 
     useEffect(() => {
         const completeOrder = async () => {
@@ -35,6 +37,10 @@ function CheckOutResultPage({ success }) {
                 );
 
                 setOrder(response.data);
+
+                // The backend has already saved the order and cleared the
+                // user's cart in RDS. Clear the frontend cart state too.
+                clearCart();
             } catch (err) {
                 console.error("Order completion error:", err);
                 setError(
@@ -47,7 +53,7 @@ function CheckOutResultPage({ success }) {
         };
 
         completeOrder();
-    }, [success, searchParams]);
+    }, [success, searchParams, clearCart]);
 
     const isSuccessful = success && !error && !processing && order;
 
