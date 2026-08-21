@@ -58,7 +58,6 @@ function CheckOut() {
             setAlertMessage("Failed to create checkout session. Please try again later.");
             console.error("Checkout error:", error);
         }
-
     };
 
     return (
@@ -75,89 +74,44 @@ function CheckOut() {
 
                         <div>
                             <label htmlFor="name" className="block mb-1 font-medium">Full Name</label>
-                            <input
-                                name="name"
-                                id="name"
-                                type="text"
-                                placeholder="John Doe"
-                                className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500"
-                            />
+                            <input name="name" id="name" type="text" placeholder="John Doe" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
                         </div>
 
                         <div>
                             <label htmlFor="email" className="block mb-1 font-medium">Email Address</label>
-                            <input
-                                name="email"
-                                id="email"
-                                type="email"
-                                placeholder="john@example.com"
-                                className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500"
-                            />
+                            <input name="email" id="email" type="email" placeholder="john@example.com" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
                         </div>
 
                         <div>
                             <label htmlFor="phone" className="block mb-1 font-medium">Phone Number</label>
-                            <input
-                                name="phone"
-                                id="phone"
-                                type="tel"
-                                placeholder="+1 234 567 8901"
-                                className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500"
-                            />
+                            <input name="phone" id="phone" type="tel" placeholder="+1 234 567 8901" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
                         </div>
 
                         <div>
                             <label htmlFor="country" className="block mb-1 font-medium">Country</label>
-                            <select
-                                name="country"
-                                id="country"
-                                className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent text-gray-800 dark:text-white focus:outline-none focus:border-blue-500"
-                            >
+                            <select name="country" id="country" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent text-gray-800 dark:text-white focus:outline-none focus:border-blue-500">
                                 <option value="">Select Country</option>
-                                {country.map((c, index) => (
-                                    <option key={index} value={c}>{c}</option>
-                                ))}
+                                {country.map((c, index) => <option key={index} value={c}>{c}</option>)}
                             </select>
                         </div>
 
                         <div>
                             <label htmlFor="address" className="block mb-1 font-medium">Address</label>
-                            <input
-                                name="address"
-                                id="address"
-                                type="text"
-                                placeholder="123 Main St"
-                                className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500"
-                            />
+                            <input name="address" id="address" type="text" placeholder="123 Main St" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
                         </div>
 
                         <div className="flex flex-col md:flex-row gap-4">
                             <div className="flex-1">
                                 <label htmlFor="city" className="block mb-1 font-medium">City</label>
-                                <input
-                                    name="city"
-                                    id="city"
-                                    type="text"
-                                    placeholder="New York"
-                                    className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500"
-                                />
+                                <input name="city" id="city" type="text" placeholder="New York" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
                             </div>
                             <div className="flex-1">
                                 <label htmlFor="postal" className="block mb-1 font-medium">Postal Code</label>
-                                <input
-                                    name="postal"
-                                    id="postal"
-                                    type="text"
-                                    placeholder="10001"
-                                    className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500"
-                                />
+                                <input name="postal" id="postal" type="text" placeholder="10001" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
                             </div>
                         </div>
 
-                        <button
-                            type="submit"
-                            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-semibold"
-                        >
+                        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-semibold">
                             Place Order
                         </button>
                     </form>
