@@ -8,7 +8,6 @@ function Navbar() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
-
     const { isAuthenticated, logout } = useAuth();
     const navigate = useNavigate();
 
@@ -47,36 +46,31 @@ function Navbar() {
 
     const filterSvg = (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                d="M3 5h18M6 12h12M10 19h4" />
+            <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M3 5h18M6 12h12M10 19h4" />
         </svg>
     );
 
     const darkModeSvg = (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+            <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
         </svg>
     );
 
     const lightModeSvg = (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.36-6.36l-1.41 1.41M7.05 16.95l-1.41 1.41M16.95 16.95l1.41 1.41M6.63 6.63L5.22 5.22M12 8a4 4 0 100 8 4 4 0 000-8z" />
+            <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.36-6.36l-1.41 1.41M7.05 16.95l-1.41 1.41M16.95 16.95l1.41 1.41M6.63 6.63L5.22 5.22M12 8a4 4 0 100 8 4 4 0 000-8z" />
         </svg>
     );
 
     const hamburgerSvg = (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                d="M4 6h16M4 12h16M4 18h16" />
+            <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
     );
 
     const closeSvg = (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
-            <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12" />
+            <path stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
     );
 
@@ -90,19 +84,17 @@ function Navbar() {
                 </Link>
 
                 <div className="flex items-center gap-6">
-                    <div className="mt-1 md:mt-0">
-                        <SearchBar />
-                    </div>
+                    <div className="mt-1 md:mt-0"><SearchBar /></div>
 
                     <div className="hidden md:flex items-center gap-6">
                         <Link to="/products" className="text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400">
                             Products
                         </Link>
 
-                        <Link to="/products" className="text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400 flex items-center gap-2">
+                        <a href="/products#product-filters" className="text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400 flex items-center gap-2">
                             {filterSvg}
                             Filter Products
-                        </Link>
+                        </a>
 
                         <button onClick={toggleDarkMode} className="w-6 h-6 text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400">
                             {isDarkMode ? darkModeSvg : lightModeSvg}
@@ -112,11 +104,7 @@ function Navbar() {
                             {cartSvg}
                         </button>
 
-                        {isAuthenticated && (
-                            <button onClick={handleLogout} className="text-gray-800 dark:text-white hover:text-red-600 hover:dark:text-red-400">
-                                Logout
-                            </button>
-                        )}
+                        {isAuthenticated && <button onClick={handleLogout} className="text-gray-800 dark:text-white hover:text-red-600 hover:dark:text-red-400">Logout</button>}
                     </div>
 
                     <div className="md:hidden flex items-center">
@@ -130,18 +118,13 @@ function Navbar() {
             {isMobileMenuOpen && (
                 <div className="fixed top-0 right-0 h-full w-1/2 bg-white dark:bg-gray-900 shadow-lg p-6 z-40 md:hidden">
                     <div className="flex flex-col space-y-6">
-                        <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-800 dark:text-white hover:text-blue-600 ml-auto hover:dark:text-blue-400">
-                            {closeSvg}
-                        </button>
+                        <button onClick={() => setIsMobileMenuOpen(false)} className="text-gray-800 dark:text-white hover:text-blue-600 ml-auto hover:dark:text-blue-400">{closeSvg}</button>
 
-                        <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400">
-                            Products
-                        </Link>
+                        <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400">Products</Link>
 
-                        <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400 flex items-center gap-2">
-                            {filterSvg}
-                            Filter Products
-                        </Link>
+                        <a href="/products#product-filters" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400 flex items-center gap-2">
+                            {filterSvg} Filter Products
+                        </a>
 
                         <button onClick={() => { toggleDarkMode(); setIsMobileMenuOpen(false); }} className="text-lg text-gray-800 dark:text-white flex items-center space-x-2 hover:text-blue-600 hover:dark:text-blue-400">
                             {isDarkMode ? darkModeSvg : lightModeSvg}
@@ -149,15 +132,10 @@ function Navbar() {
                         </button>
 
                         <button onClick={() => { setIsCartOpen(true); setIsMobileMenuOpen(false); }} className="text-lg text-gray-800 dark:text-white flex items-center space-x-2 hover:text-blue-600 hover:dark:text-blue-400">
-                            {cartSvg}
-                            <span>Cart</span>
+                            {cartSvg}<span>Cart</span>
                         </button>
 
-                        {isAuthenticated && (
-                            <button onClick={handleLogout} className="text-lg text-left text-gray-800 dark:text-white hover:text-red-600 hover:dark:text-red-400">
-                                Logout
-                            </button>
-                        )}
+                        {isAuthenticated && <button onClick={handleLogout} className="text-lg text-left text-gray-800 dark:text-white hover:text-red-600 hover:dark:text-red-400">Logout</button>}
                     </div>
                 </div>
             )}
