@@ -1,39 +1,45 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import SearchBar from "./SearchBar";
 import CartPopup from "./Cart/CartPopup";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
     const [isCartOpen, setIsCartOpen] = useState(false);
 
+    const { isAuthenticated, logout } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const darkMode = localStorage.getItem("theme");
+
         if (darkMode === "dark") {
             setIsDarkMode(true);
             document.documentElement.classList.add("dark");
         }
-
-
     }, []);
 
     const toggleDarkMode = () => {
         setIsDarkMode((prev) => !prev);
+
         const root = document.documentElement;
+
         if (isDarkMode) {
             root.classList.remove("dark");
             localStorage.setItem("theme", "light");
-        }
-        else {
+        } else {
             root.classList.add("dark");
             localStorage.setItem("theme", "dark");
         }
     };
 
-
+    const handleLogout = () => {
+        logout();
+        setIsMobileMenuOpen(false);
+        navigate("/login");
+    };
 
     const cartSvg = (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
@@ -48,13 +54,28 @@ function Navbar() {
     );
 
     const darkModeSvg = (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" />
+        <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+        >
+            <path
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z"
+            />
         </svg>
     );
 
     const lightModeSvg = (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg
+            className="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+        >
             <path
                 strokeWidth="2"
                 strokeLinecap="round"
@@ -65,81 +86,161 @@ function Navbar() {
     );
 
     const hamburgerSvg = (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <path
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M4 6h16M4 12h16M4 18h16"
+            />
         </svg>
     );
 
     const closeSvg = (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <path
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+            />
         </svg>
     );
 
     return (
         <nav className="sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-md w-full">
-            {isCartOpen && (<CartPopup onClose={() => setIsCartOpen(false)} closeSvg={closeSvg}/>)}
+
+            {isCartOpen && (
+                <CartPopup
+                    onClose={() => setIsCartOpen(false)}
+                    closeSvg={closeSvg}
+                />
+            )}
+
             <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
+
                 {/* Logo */}
-                <Link to="/" className="text-3xl font-bold text-black dark:text-white">
+                <Link
+                    to="/"
+                    className="text-3xl font-bold text-black dark:text-white"
+                >
                     H<span className="text-blue-600">tag</span>
                 </Link>
 
                 {/* Right Section */}
                 <div className="flex items-center gap-6">
+
                     {/* Search */}
                     <div className="mt-1 md:mt-0">
                         <SearchBar />
                     </div>
 
-                    {/* Desktop menu */}
+                    {/* Desktop Menu */}
                     <div className="hidden md:flex items-center gap-6">
-                        <Link to="/products" className="text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400">
+
+                        <Link
+                            to="/products"
+                            className="text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400"
+                        >
                             Products
                         </Link>
-                        <Link to={"/image-search"} className="text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400">
+
+                        <Link
+                            to="/image-search"
+                            className="text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400"
+                        >
                             Image Search
                         </Link>
+
+                        {/* Dark Mode */}
                         <button
                             onClick={toggleDarkMode}
                             className="w-6 h-6 text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400"
                         >
                             {isDarkMode ? darkModeSvg : lightModeSvg}
                         </button>
-                        <button onClick={()=>{setIsCartOpen(true)}} className="w-6 h-6 text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400">
+
+                        {/* Cart */}
+                        <button
+                            onClick={() => setIsCartOpen(true)}
+                            className="w-6 h-6 text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400"
+                        >
                             {cartSvg}
                         </button>
+
+                        {/* Logout */}
+                        {isAuthenticated && (
+                            <button
+                                onClick={handleLogout}
+                                className="text-gray-800 dark:text-white hover:text-red-600 hover:dark:text-red-400"
+                            >
+                                Logout
+                            </button>
+                        )}
+
                     </div>
 
-                    {/* Mobile menu toggle */}
+                    {/* Mobile Menu Toggle */}
                     <div className="md:hidden flex items-center">
+
                         <button
-                            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                            onClick={() =>
+                                setIsMobileMenuOpen((prev) => !prev)
+                            }
                             className="text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400"
                         >
-                            {isMobileMenuOpen ? closeSvg : hamburgerSvg}
+                            {isMobileMenuOpen
+                                ? closeSvg
+                                : hamburgerSvg}
                         </button>
+
                     </div>
+
                 </div>
+
             </div>
 
-            {/* Mobile Drawer Menu */}
+            {/* Mobile Drawer */}
             {isMobileMenuOpen && (
                 <div className="fixed top-0 right-0 h-full w-1/2 bg-white dark:bg-gray-900 shadow-lg p-6 z-40 md:hidden">
+
                     <div className="flex flex-col space-y-6">
+
+                        {/* Close */}
                         <button
-                            onClick={() => setIsMobileMenuOpen(false)}
+                            onClick={() =>
+                                setIsMobileMenuOpen(false)
+                            }
                             className="text-gray-800 dark:text-white hover:text-blue-600 ml-auto hover:dark:text-blue-400"
                         >
                             {closeSvg}
                         </button>
+
+                        {/* Products */}
                         <Link
                             to="/products"
-                            onClick={() => setIsMobileMenuOpen(false)}
+                            onClick={() =>
+                                setIsMobileMenuOpen(false)
+                            }
                             className="text-lg text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400"
                         >
                             Products
                         </Link>
+
+                        {/* Image Search */}
+                        <Link
+                            to="/image-search"
+                            onClick={() =>
+                                setIsMobileMenuOpen(false)
+                            }
+                            className="text-lg text-gray-800 dark:text-white hover:text-blue-600 hover:dark:text-blue-400"
+                        >
+                            Image Search
+                        </Link>
+
+                        {/* Dark Mode */}
                         <button
                             onClick={() => {
                                 toggleDarkMode();
@@ -147,21 +248,44 @@ function Navbar() {
                             }}
                             className="text-lg text-gray-800 dark:text-white flex items-center space-x-2 hover:text-blue-600 hover:dark:text-blue-400"
                         >
-                            {isDarkMode ? darkModeSvg : lightModeSvg}
-                            <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
+                            {isDarkMode
+                                ? darkModeSvg
+                                : lightModeSvg}
+
+                            <span>
+                                {isDarkMode
+                                    ? "Light Mode"
+                                    : "Dark Mode"}
+                            </span>
                         </button>
+
+                        {/* Cart */}
                         <button
                             onClick={() => {
                                 setIsCartOpen(true);
+                                setIsMobileMenuOpen(false);
                             }}
                             className="text-lg text-gray-800 dark:text-white flex items-center space-x-2 hover:text-blue-600 hover:dark:text-blue-400"
                         >
                             {cartSvg}
                             <span>Cart</span>
                         </button>
+
+                        {/* Logout */}
+                        {isAuthenticated && (
+                            <button
+                                onClick={handleLogout}
+                                className="text-lg text-left text-gray-800 dark:text-white hover:text-red-600 hover:dark:text-red-400"
+                            >
+                                Logout
+                            </button>
+                        )}
+
                     </div>
+
                 </div>
             )}
+
         </nav>
     );
 }
