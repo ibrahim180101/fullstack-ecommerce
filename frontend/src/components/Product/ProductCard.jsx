@@ -2,45 +2,51 @@ import { Link } from "react-router-dom";
 import AddToCartControls from "../Cart/AddToCartControls";
 
 function ProductCard({ id, img, description, name, price }) {
-    const src =
-        "https://images.unsplash.com/photo-1599481238640-4c1288750d7a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=2664&q=80";
+    const fallback = "https://images.unsplash.com/photo-1599481238640-4c1288750d7a?auto=format&fit=crop&w=900&q=80";
 
     return (
-        <div
-            className="group rounded-2xl overflow-hidden bg-white dark:bg-gray-800
-                shadow-md hover:shadow-lg dark:hover:shadow-white/10
-                transition duration-300 ease-in-out flex flex-col"
-        >
-            <Link to={`/product/${id}`} className="block w-full flex-1">
-                <div
-                    className="w-full h-56 bg-gray-100 flex items-center justify-center overflow-hidden rounded
-                    group-hover:scale-105 transition-transform duration-300 ease-in-out"
-                >
+        <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl dark:border-slate-700 dark:bg-slate-800 dark:hover:shadow-blue-900/20">
+            <Link to={`/product/${id}`} className="block">
+                <div className="relative flex h-64 items-center justify-center overflow-hidden bg-slate-50 p-5 dark:bg-slate-900">
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-transparent to-violet-50 opacity-80 dark:from-blue-950/30 dark:to-violet-950/20" />
                     <img
-                        src={img || src}
+                        src={img || fallback}
                         alt={name}
-                        className="object-contain w-full h-full"
+                        className="relative z-10 h-full w-full object-contain transition duration-500 group-hover:scale-105"
                     />
+                    <span className="absolute left-4 top-4 z-20 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-slate-700 shadow-sm backdrop-blur dark:bg-slate-800/90 dark:text-slate-200">
+                        Electronics
+                    </span>
                 </div>
             </Link>
 
-            <div className="p-4 sm:p-6 flex flex-col flex-1">
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                    ${price}
-                </p>
-                <h2 className="text-lg font-bold text-gray-800 dark:text-white mt-1">
-                    {name}
-                </h2>
-                <p className="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
+            <div className="flex flex-1 flex-col p-5">
+                <div className="mb-2 flex items-start justify-between gap-3">
+                    <h2 className="line-clamp-2 text-lg font-extrabold leading-6 text-slate-900 dark:text-white">
+                        {name}
+                    </h2>
+                </div>
+
+                <p className="line-clamp-2 min-h-10 text-sm leading-5 text-slate-500 dark:text-slate-400">
                     {description}
                 </p>
 
-                {/* pushes button to bottom */}
-                <div className="mt-6 mb-2">
-                    <AddToCartControls id={id} />
+                <div className="mt-auto pt-5">
+                    <div className="mb-4 flex items-end justify-between">
+                        <div>
+                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Price</p>
+                            <p className="mt-0.5 text-2xl font-black text-slate-950 dark:text-white">₹{Number(price || 0).toLocaleString("en-IN")}</p>
+                        </div>
+                        <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400">
+                            In stock
+                        </span>
+                    </div>
+                    <div className="rounded-xl bg-slate-50 p-1.5 dark:bg-slate-900/70">
+                        <AddToCartControls id={id} />
+                    </div>
                 </div>
             </div>
-        </div>
+        </article>
     );
 }
 
