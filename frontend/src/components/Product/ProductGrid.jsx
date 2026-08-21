@@ -1,15 +1,14 @@
-import { useEffect, useState } from "react";
-import axios from "../../api/axios"; // Adjust the import path as necessary
+import { useEffect, useMemo, useState } from "react";
+import axios from "../../api/axios";
 import Alert from "../Alert";
 import ProductCard from "./ProductCard";
 import Spinner from "../Spinner";
 
-function ProductGrid({ searchTerm, onDataLoaded }) {
+function ProductGrid({ searchTerm, onDataLoaded, filters = {} }) {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [alertMessage, setAlertMessage] = useState("");
     const [alertType, setAlertType] = useState("error");
-
     const [page, setPage] = useState(0);
     const [size] = useState(10);
     const [totalPages, setTotalPages] = useState(1);
@@ -25,31 +24,46 @@ function ProductGrid({ searchTerm, onDataLoaded }) {
                         Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
                     },
-                    params: {
-                        page,
-                        size,
-                        search: searchTerm || "",
-                    },
+                    params: { page, size, search: searchTerm || "" },
                 });
-
-                setProducts(response.data.products);
-                // Call the onDataLoaded callback if provided
-                onDataLoaded?.(response.data.products);
-                setTotalPages(response.data.totalPages);
-            }
-            catch (err) {
+                setProducts(response.data.products || []);
+                onDataLoaded?.(response.data.products || []);
+                setTotalPages(response.data.totalPages || 1);
+            } catch (err) {
                 const errorMsg = err.response?.data?.error;
                 const msgs = typeof errorMsg === "string" ? [errorMsg] : Object.values(errorMsg || {});
                 setAlertMessage(msgs.length > 0 ? msgs : "Failed to load products.");
                 setAlertType("error");
-            }
-            finally {
+            } finally {
                 setLoading(false);
             }
         };
-
         fetchData();
     }, [page, size, searchTerm, onDataLoaded]);
+
+    const filteredProducts = useMemo(() => {
+        let result = [...products];
+        const category = (filters.category || "").toLowerCase();
+        const min = filters.minPrice === "" ? null : Number(filters.minPrice);
+        const max = filters.maxPrice === "" ? null : Number(filters.maxPrice);
+
+        if (category) {
+            result = result.filter((product) =>
+                String(product.category || "").toLowerCase() === category
+            );
+        }
+        if (min !== null && !Number.isNaN(min)) {
+            result = result.filter((product) => Number(product.price) >= min);
+        }
+        if (max !== null && !Number.isNaN(max)) {
+            result = result.filter((product) => Number(product.price) <= max);
+        }
+        if (filters.sort === "low") result.sort((a, b) => Number(a.price) - Number(b.price));
+        if (filters.sort === "high") result.sort((a, b) => Number(b.price) - Number(a.price));
+        if (filters.sort === "name") result.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
+        return result;
+    }, [products, filters]);
 
     return (
         <>
@@ -59,52 +73,27 @@ function ProductGrid({ searchTerm, onDataLoaded }) {
                 </div>
             )}
 
-            {loading ? (
-                <Spinner />
-            ) : (
+            {loading ? <Spinner /> : (
                 <>
+                    <div id="product-filters" className="flex flex-wrap items-center justify-center gap-3 px-4 pt-6">
+                        <span className="font-semibold text-gray-700 dark:text-gray-200">Filter Products:</span>
+                    </div>
                     <ul className="grid mt-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 px-4 md:px-10 mb-10">
-                        {products.map((product) => (
+                        {filteredProducts.map((product) => (
                             <li key={product.id}>
-                                <ProductCard
-                                    id={product.id}
-                                    name={product.name}
-                                    description={product.description}
-                                    img={product.imageUrl}
-                                    price={product.price}
-                                />
+                                <ProductCard id={product.id} name={product.name} description={product.description} img={product.imageUrl} price={product.price} />
                             </li>
                         ))}
                     </ul>
-
+                    {filteredProducts.length === 0 && (
+                        <p className="text-center text-gray-600 dark:text-gray-300 mb-8">No products match your filter.</p>
+                    )}
                     <div className="flex items-center justify-center gap-3 px-4 py-4">
-                        <button
-                            onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
-                            disabled={page === 0}
-                            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-                        >
-                            &#129172;
-                        </button>
+                        <button onClick={() => setPage((prev) => Math.max(prev - 1, 0))} disabled={page === 0} className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">&#129172;</button>
                         {[...Array(totalPages)].map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setPage(i)}
-                                className={`px-4 py-2 rounded ${
-                                    page === i
-                                        ? "bg-blue-600 text-white"
-                                        : "bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-white"
-                                }`}
-                            >
-                                {i + 1}
-                            </button>
+                            <button key={i} onClick={() => setPage(i)} className={`px-4 py-2 rounded ${page === i ? "bg-blue-600 text-white" : "bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-white"}`}>{i + 1}</button>
                         ))}
-                        <button
-                            onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))}
-                            disabled={page >= totalPages - 1}
-                            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
-                        >
-                            &#129174;
-                        </button>
+                        <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages - 1))} disabled={page >= totalPages - 1} className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">&#129174;</button>
                     </div>
                 </>
             )}
