@@ -1,17 +1,18 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import Alert from "../components/Alert";
 import axios from "../api/axios";
 
 function CheckOut() {
     const { cartItems, subTotal } = useCart();
-    const country = ["Canada", "USA", "UK"];
-
     const [alertMessage, setAlertMessage] = useState("");
     const [alertType, setAlertType] = useState("error");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setAlertMessage("");
 
         const formData = new FormData(e.target);
         const billingDetails = {
@@ -25,12 +26,20 @@ function CheckOut() {
         };
 
         for (const [key, value] of Object.entries(billingDetails)) {
-            if (!value) {
+            if (!value?.trim()) {
                 setAlertType("error");
                 setAlertMessage(`Please fill out the ${key} field.`);
                 return;
             }
         }
+
+        if (cartItems.length === 0) {
+            setAlertType("error");
+            setAlertMessage("Your shopping bag is empty.");
+            return;
+        }
+
+        setIsSubmitting(true);
 
         try {
             const response = await axios.post(
@@ -52,96 +61,146 @@ function CheckOut() {
             if (response.data.url) {
                 window.location.href = response.data.url;
             }
-        }
-        catch (error) {
+        } catch (error) {
             setAlertType("error");
-            setAlertMessage("Failed to create checkout session. Please try again later.");
+            setAlertMessage("We couldn't start checkout. Please try again.");
             console.error("Checkout error:", error);
+            setIsSubmitting(false);
         }
     };
 
+    const formatPrice = (value) => Number(value).toLocaleString("en-IN", { minimumFractionDigits: 2 });
+
     return (
-        <>
-            <div className="flex flex-col md:justify-center md:flex-row items-start min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-6 gap-6 w-full overflow-x-hidden">
+        <main className="min-h-screen bg-slate-50 px-4 py-8 text-slate-900 dark:bg-slate-950 dark:text-white sm:px-6 lg:px-10">
+            {alertMessage && (
+                <Alert type={alertType} message={alertMessage} onClose={() => setAlertMessage("")} />
+            )}
 
-                {alertMessage && (
-                    <Alert type={alertType} message={alertMessage} onClose={() => setAlertMessage("")} />
-                )}
-
-                <div className="w-full md:w-1/2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex-1 h-full">
-                    <form onSubmit={handleSubmit} className="space-y-6 pb-6 text-gray-800 dark:text-gray-300">
-                        <h1 className="text-2xl font-bold mb-4">Billing Details</h1>
-
-                        <div>
-                            <label htmlFor="name" className="block mb-1 font-medium">Full Name</label>
-                            <input name="name" id="name" type="text" placeholder="John Doe" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
-                        </div>
-
-                        <div>
-                            <label htmlFor="email" className="block mb-1 font-medium">Email Address</label>
-                            <input name="email" id="email" type="email" placeholder="john@example.com" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
-                        </div>
-
-                        <div>
-                            <label htmlFor="phone" className="block mb-1 font-medium">Phone Number</label>
-                            <input name="phone" id="phone" type="tel" placeholder="+1 234 567 8901" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
-                        </div>
-
-                        <div>
-                            <label htmlFor="country" className="block mb-1 font-medium">Country</label>
-                            <select name="country" id="country" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent text-gray-800 dark:text-white focus:outline-none focus:border-blue-500">
-                                <option value="">Select Country</option>
-                                {country.map((c, index) => <option key={index} value={c}>{c}</option>)}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label htmlFor="address" className="block mb-1 font-medium">Address</label>
-                            <input name="address" id="address" type="text" placeholder="123 Main St" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
-                        </div>
-
-                        <div className="flex flex-col md:flex-row gap-4">
-                            <div className="flex-1">
-                                <label htmlFor="city" className="block mb-1 font-medium">City</label>
-                                <input name="city" id="city" type="text" placeholder="New York" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
-                            </div>
-                            <div className="flex-1">
-                                <label htmlFor="postal" className="block mb-1 font-medium">Postal Code</label>
-                                <input name="postal" id="postal" type="text" placeholder="10001" className="w-full px-3 py-2 border-b-2 border-gray-300 dark:border-gray-600 bg-transparent focus:outline-none focus:border-blue-500" />
-                            </div>
-                        </div>
-
-                        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors font-semibold">
-                            Place Order
-                        </button>
-                    </form>
+            <div className="mx-auto max-w-7xl">
+                <div className="mb-8">
+                    <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-600">Secure Checkout</p>
+                    <h1 className="mt-1 text-3xl font-black tracking-tight md:text-4xl">Complete your order</h1>
+                    <p className="mt-2 text-slate-500 dark:text-slate-400">Enter your billing details, then continue to secure Stripe payment.</p>
                 </div>
 
-                <div className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex-1 h-full">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Order Summary</h2>
-                    {cartItems.length === 0 ? (
-                        <p className="text-gray-500 dark:text-gray-400">Your cart is empty.</p>
-                    ) : (
-                        <>
-                            <ul className="space-y-4">
-                                {cartItems.map((item) => (
-                                    <li key={item.id} className="flex justify-between text-gray-700 dark:text-gray-300">
-                                        <span>{item.product.name} (x{item.quantity})</span>
-                                        <span>${(item.product.price * item.quantity).toFixed(2)}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <div className="mt-4 border-t pt-4">
-                                <div className="flex justify-between text-gray-800 dark:text-white font-semibold">
-                                    <span>Total</span>
-                                    <span>${subTotal}</span>
+                <div className="mb-8 grid grid-cols-3 gap-2 sm:gap-4">
+                    {[["1", "Shopping Bag"], ["2", "Billing Details"], ["3", "Payment"]].map(([number, label], index) => (
+                        <div key={number} className="flex items-center gap-2 sm:gap-3">
+                            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black ${index === 1 ? "bg-blue-600 text-white" : "bg-slate-200 text-slate-600 dark:bg-white/10 dark:text-slate-300"}`}>{number}</div>
+                            <span className={`hidden text-sm font-bold sm:block ${index === 1 ? "text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400"}`}>{label}</span>
+                            {index < 2 && <div className="ml-auto h-px flex-1 bg-slate-200 dark:bg-white/10" />}
+                        </div>
+                    ))}
+                </div>
+
+                <div className="grid gap-8 lg:grid-cols-[1fr_390px] lg:items-start">
+                    <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04] md:p-8">
+                        <div className="mb-8 flex items-start justify-between gap-4 border-b border-slate-200 pb-6 dark:border-white/10">
+                            <div>
+                                <h2 className="text-2xl font-black">Billing Details</h2>
+                                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Where should we send your order information?</p>
+                            </div>
+                            <span className="rounded-full bg-green-100 px-3 py-1.5 text-xs font-bold text-green-700 dark:bg-green-500/10 dark:text-green-300">Secure</span>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            <div className="grid gap-5 md:grid-cols-2">
+                                <div className="md:col-span-2">
+                                    <label htmlFor="name" className="mb-2 block text-sm font-bold">Full Name</label>
+                                    <input name="name" id="name" type="text" autoComplete="name" placeholder="Ibrahim M" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-950" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="email" className="mb-2 block text-sm font-bold">Email Address</label>
+                                    <input name="email" id="email" type="email" autoComplete="email" placeholder="you@example.com" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-950" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="phone" className="mb-2 block text-sm font-bold">Phone Number</label>
+                                    <input name="phone" id="phone" type="tel" autoComplete="tel" placeholder="+91 98765 43210" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-950" />
+                                </div>
+
+                                <div>
+                                    <label htmlFor="country" className="mb-2 block text-sm font-bold">Country</label>
+                                    <select name="country" id="country" defaultValue="" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-slate-900 dark:text-white dark:focus:bg-slate-950">
+                                        <option value="">Select Country</option>
+                                        <option value="India">India</option>
+                                        <option value="USA">USA</option>
+                                        <option value="UK">UK</option>
+                                        <option value="Canada">Canada</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label htmlFor="postal" className="mb-2 block text-sm font-bold">Postal Code</label>
+                                    <input name="postal" id="postal" type="text" autoComplete="postal-code" placeholder="600037" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-950" />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label htmlFor="address" className="mb-2 block text-sm font-bold">Street Address</label>
+                                    <input name="address" id="address" type="text" autoComplete="street-address" placeholder="House / Flat number, street and area" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-950" />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label htmlFor="city" className="mb-2 block text-sm font-bold">City</label>
+                                    <input name="city" id="city" type="text" autoComplete="address-level2" placeholder="Chennai" className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-white/10 dark:bg-slate-900 dark:focus:bg-slate-950" />
                                 </div>
                             </div>
-                        </>
-                    )}
+
+                            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-500/20 dark:bg-blue-500/5 dark:text-blue-200">
+                                <div className="flex gap-3"><span className="text-lg">🔒</span><p><strong>Your payment is secure.</strong> You'll be redirected to Stripe's secure checkout page to complete the payment.</p></div>
+                            </div>
+
+                            <button type="submit" disabled={isSubmitting || cartItems.length === 0} className="w-full rounded-xl bg-blue-600 py-4 font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60">
+                                {isSubmitting ? "Redirecting to Stripe..." : "Continue to Secure Payment →"}
+                            </button>
+                        </form>
+                    </section>
+
+                    <aside className="sticky top-24 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-black">Your Order</h2>
+                            <Link to="/cart" className="text-sm font-bold text-blue-600 hover:text-blue-500">Edit bag</Link>
+                        </div>
+
+                        {cartItems.length === 0 ? (
+                            <div className="py-10 text-center">
+                                <div className="text-4xl">🛒</div>
+                                <p className="mt-3 font-bold">Your bag is empty</p>
+                                <Link to="/products" className="mt-4 inline-block text-sm font-bold text-blue-600">Browse products →</Link>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="mt-6 max-h-80 space-y-4 overflow-y-auto pr-1">
+                                    {cartItems.map((item) => (
+                                        <div key={item.id} className="flex gap-3">
+                                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800">
+                                                {item.product?.imageUrl ? <img src={item.product.imageUrl} alt={item.product.name} className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center">📦</div>}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-bold">{item.product.name}</p>
+                                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Qty {item.quantity}</p>
+                                            </div>
+                                            <p className="text-sm font-bold">₹{formatPrice(item.product.price * item.quantity)}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="my-6 border-t border-slate-200 dark:border-white/10" />
+                                <div className="space-y-3 text-sm">
+                                    <div className="flex justify-between text-slate-500 dark:text-slate-400"><span>Subtotal</span><span>₹{formatPrice(subTotal)}</span></div>
+                                    <div className="flex justify-between text-slate-500 dark:text-slate-400"><span>Delivery</span><span className="font-bold text-green-600">FREE</span></div>
+                                </div>
+                                <div className="my-5 border-t border-slate-200 dark:border-white/10" />
+                                <div className="flex items-center justify-between"><span className="font-bold">Total</span><span className="text-2xl font-black">₹{formatPrice(subTotal)}</span></div>
+                                <div className="mt-5 flex flex-wrap gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400"><span className="rounded-full bg-slate-100 px-3 py-1.5 dark:bg-white/10">🔒 Secure</span><span className="rounded-full bg-slate-100 px-3 py-1.5 dark:bg-white/10">💳 Stripe</span><span className="rounded-full bg-slate-100 px-3 py-1.5 dark:bg-white/10">✓ Free delivery</span></div>
+                            </>
+                        )}
+                    </aside>
                 </div>
             </div>
-        </>
+        </main>
     );
 }
 
