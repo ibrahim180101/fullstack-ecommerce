@@ -32,7 +32,6 @@ function CheckOut() {
             }
         }
 
-        // Proceed with placing the order (API call or Stripe logic)
         try {
             const response = await axios.post(
                 "/api/v1/stripe/create-checkout-session",
@@ -40,8 +39,8 @@ function CheckOut() {
                     productNames: cartItems.map(item => item.product.name),
                     pricesInCents: cartItems.map(item => Math.round(item.product.price * 100)),
                     quantities: cartItems.map(item => item.quantity),
-                    successUrl: `http://my-frontendecom-bucket.s3-website.us-east-2.amazonaws.com/success`,
-                    cancelUrl: `http://my-frontendecom-bucket.s3-website.us-east-2.amazonaws.com/cancel`,
+                    successUrl: `${window.location.origin}/success`,
+                    cancelUrl: `${window.location.origin}/cancel`,
                 },
                 {
                     headers: {
@@ -70,7 +69,6 @@ function CheckOut() {
                     <Alert type={alertType} message={alertMessage} onClose={() => setAlertMessage("")} />
                 )}
 
-                {/* Billing Form */}
                 <div className="w-full md:w-1/2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex-1 h-full">
                     <form onSubmit={handleSubmit} className="space-y-6 pb-6 text-gray-800 dark:text-gray-300">
                         <h1 className="text-2xl font-bold mb-4">Billing Details</h1>
@@ -165,7 +163,6 @@ function CheckOut() {
                     </form>
                 </div>
 
-                {/* Order Summary */}
                 <div className="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md flex-1 h-full">
                     <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Order Summary</h2>
                     {cartItems.length === 0 ? (
