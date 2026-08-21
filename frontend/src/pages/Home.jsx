@@ -5,19 +5,33 @@ function Home() {
     const features = [
         ["🔐", "Secure Authentication", "JWT-based login with protected API access."],
         ["🛒", "Shopping Cart", "Add products, update quantities and manage your cart."],
-        ["💳", "Stripe Checkout", "Secure test-mode payments with completed orders saved to RDS."],
-        ["📦", "Order Management", "Orders store the user, products, quantities, prices and payment status."],
+        ["💳", "Stripe Checkout", "Test-mode payments with completed orders saved to RDS."],
+        ["📦", "Order Management", "Orders store users, products, quantities, prices and payment status."],
         ["🔎", "Product Filtering", "Search, filter by category and price, and sort products."],
         ["☁️", "AWS Deployment", "Frontend and backend containers run on Amazon ECS Fargate."],
     ];
 
     const stack = [
-        ["☕", "Java 17", "Backend"], ["🍃", "Spring Boot", "REST API"],
-        ["⚛️", "React", "Frontend"], ["🎨", "Tailwind CSS", "UI"],
-        ["🔑", "JWT + Spring Security", "Auth"], ["💳", "Stripe", "Payments"],
-        ["🐳", "Docker", "Containers"], ["🔨", "Jenkins", "CI/CD"],
-        ["📦", "Amazon ECR", "Images"], ["🚀", "Amazon ECS Fargate", "Hosting"],
-        ["🗄️", "Amazon RDS MySQL", "Database"], ["🏗️", "Terraform", "IaC"],
+        ["☕", "Java 17", "Backend runtime"],
+        ["🍃", "Spring Boot", "REST API"],
+        ["⚛️", "React", "Frontend"],
+        ["🎨", "Tailwind CSS", "UI styling"],
+        ["🔑", "JWT + Spring Security", "Authentication"],
+        ["💳", "Stripe", "Payments"],
+        ["🐳", "Docker", "Containers"],
+        ["🔨", "Jenkins", "CI/CD"],
+        ["📦", "Amazon ECR", "Container registry"],
+        ["🚀", "Amazon ECS Fargate", "Application hosting"],
+        ["🗄️", "Amazon RDS MySQL", "Application database"],
+        ["🐙", "GitHub", "Source control"],
+    ];
+
+    const deliverySteps = [
+        ["01", "Push", "Code is pushed to GitHub."],
+        ["02", "Build", "Jenkins builds the frontend and backend Docker images."],
+        ["03", "Publish", "Docker images are pushed to Amazon ECR."],
+        ["04", "Deploy", "ECS task definitions are updated with the new images."],
+        ["05", "Run", "The application runs on AWS with RDS-backed data."],
     ];
 
     return (
@@ -27,14 +41,14 @@ function Home() {
                 <div className="relative mx-auto max-w-7xl px-5 py-20 sm:px-8 md:py-28">
                     <div className="max-w-4xl">
                         <div className="inline-flex items-center gap-2 rounded-full border border-blue-400/25 bg-blue-400/10 px-4 py-2 text-sm font-semibold text-blue-200">
-                            <span className="h-2 w-2 rounded-full bg-green-400" /> Full-Stack • Cloud • CI/CD
+                            <span className="h-2 w-2 rounded-full bg-green-400" /> Full-Stack • AWS • CI/CD
                         </div>
                         <h1 className="mt-7 text-5xl font-black leading-[1.02] tracking-tight md:text-7xl">
                             A modern
                             <span className="block bg-gradient-to-r from-blue-400 via-cyan-300 to-purple-400 bg-clip-text text-transparent">e-commerce platform.</span>
                         </h1>
                         <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-300 md:text-xl">
-                            Shop electronics, manage your cart, pay with Stripe and complete the full shopping journey through a React and Spring Boot application deployed on AWS.
+                            Shop electronics, manage your cart, complete Stripe test payments and experience a full React and Spring Boot application running on AWS.
                         </p>
                         <div className="mt-9 flex flex-wrap gap-4">
                             <Link to="/products" className="rounded-xl bg-blue-600 px-6 py-3.5 font-bold shadow-xl shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-500">Explore Products →</Link>
@@ -43,9 +57,9 @@ function Home() {
                     </div>
 
                     <div className="mt-16 rounded-3xl border border-white/10 bg-white/[0.04] p-5 backdrop-blur md:p-7">
-                        <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-300">Deployment flow</p>
+                        <p className="text-xs font-bold uppercase tracking-[0.25em] text-blue-300">Application flow</p>
                         <div className="mt-5 flex flex-wrap items-center gap-3 text-sm font-semibold">
-                            {["React Frontend", "GitHub", "Jenkins", "Docker", "Amazon ECR", "ECS Fargate", "RDS MySQL"].map((item, index, items) => (
+                            {["React Frontend", "Spring Boot API", "Docker", "Amazon ECR", "ECS Fargate", "RDS MySQL"].map((item, index, items) => (
                                 <React.Fragment key={item}>
                                     <span className="rounded-xl border border-white/10 bg-slate-900/70 px-4 py-2.5 text-slate-200">{item}</span>
                                     {index < items.length - 1 && <span className="text-blue-400">→</span>}
@@ -77,8 +91,8 @@ function Home() {
                 <div className="mx-auto max-w-7xl">
                     <div className="mx-auto max-w-2xl text-center">
                         <p className="text-sm font-bold uppercase tracking-[0.2em] text-cyan-300">Technology</p>
-                        <h2 className="mt-3 text-3xl font-black md:text-5xl">Tools used in this project.</h2>
-                        <p className="mt-4 text-slate-400">Application development, containers, AWS infrastructure and automated delivery in one project.</p>
+                        <h2 className="mt-3 text-3xl font-black md:text-5xl">Tools actually used in this project.</h2>
+                        <p className="mt-4 text-slate-400">The application combines Java, Spring Boot, React, Docker, Jenkins and AWS services for development and deployment.</p>
                     </div>
                     <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                         {stack.map(([icon, name, description]) => (
@@ -96,12 +110,12 @@ function Home() {
                 <div className="mx-auto max-w-7xl rounded-3xl border border-blue-400/15 bg-gradient-to-br from-blue-950/60 to-purple-950/40 p-8 md:p-12">
                     <div className="grid items-center gap-10 lg:grid-cols-2">
                         <div>
-                            <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-300">Cloud delivery</p>
+                            <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-300">CI/CD delivery</p>
                             <h2 className="mt-3 text-3xl font-black md:text-5xl">From code push to running containers.</h2>
-                            <p className="mt-5 leading-8 text-slate-300">GitHub triggers Jenkins, Jenkins builds the frontend and backend Docker images, the images are pushed to Amazon ECR, and ECS runs the application. Terraform is used for AWS infrastructure and RDS MySQL stores application data.</p>
+                            <p className="mt-5 leading-8 text-slate-300">GitHub triggers Jenkins, Jenkins builds the frontend and backend Docker images, the images are pushed to Amazon ECR, and ECS runs the application. The application data is stored in Amazon RDS MySQL.</p>
                         </div>
                         <div className="space-y-3">
-                            {[["01", "Push", "Code is pushed to GitHub."], ["02", "Build", "Jenkins builds frontend and backend images."], ["03", "Publish", "Docker images are pushed to Amazon ECR."], ["04", "Deploy", "ECS task definitions use the new images."], ["05", "Run", "The application runs on AWS with RDS-backed data."]].map(([number, title, text]) => (
+                            {deliverySteps.map(([number, title, text]) => (
                                 <div key={number} className="flex gap-4 rounded-2xl border border-white/10 bg-black/20 p-4">
                                     <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-sm font-black text-blue-300">{number}</span>
                                     <div><h3 className="font-bold">{title}</h3><p className="mt-0.5 text-sm text-slate-400">{text}</p></div>
